@@ -1,159 +1,217 @@
 import tkinter as tk
-from tkinter import messagebox
-from datetime import datetime
+from tkinter import messagebox, simpledialog
 
-# =========================
-# DADOS DO SISTEMA
-# =========================
+# =====================================================
+# 1️⃣ DADOS INICIAIS (LISTAS EM MEMÓRIA)
+# =====================================================
 
 MAQUINAS = [
-    "Fresa Okada",
-    "Fresa AWEA",
-    "Torno Fanuc",
-    "Torno Fagor",
-    "Torno Conv1",
-    "Torno Conv2",
-    "Fresa Conv",
-    "Bancada"
+    "Centro Usinagem 01",
+    "Centro Usinagem 02",
+    "Torno CNC 01",
+    "Fresa Convencional"
 ]
 
 OPERADORES = [
     "Joao",
     "Maria",
     "Carlos",
-    "Pedro",
-    "Ana",
-    "Marcos"
+    "Ana"
 ]
 
-# =========================
-# FUNÇÕES
-# =========================
+# =====================================================
+# 2️⃣ FUNÇÕES AUXILIARES
+# =====================================================
 
-#FUNÇÃO PARA OPERADORES
-def operador_selecionado(event):
-    if not lista_operadores.curselection():
-        return
+def beep():
+    root.bell()
 
-    operador = lista_operadores.get(lista_operadores.curselection())
-    entry_pesq_operador.delete(0, tk.END)
-    entry_pesq_operador.insert(0, operador)
+def selecionar_da_lista(event, entry_destino, listbox):
+    try:
+        selecionado = listbox.get(listbox.curselection())
+        entry_destino.delete(0, tk.END)
+        entry_destino.insert(0, selecionado)
+        beep()
+    except:
+        pass
 
-    lista_operadores.bind("<<ListboxSelect>>", operador_selecionado)
+def filtrar_lista(entry, lista_original, listbox):
+    termo = entry.get().lower()
+    listbox.delete(0, tk.END)
+    for item in lista_original:
+        if termo in item.lower():
+            listbox.insert(tk.END, item)
 
+# =====================================================
+# 3️⃣ FUNÇÕES DE CADASTRO (MENU)
+# =====================================================
 
-#FUNÇÃO PARA MAQUINA
-def maquina_selecionada(event):
-    if not lista_maquinas.curselection():
-        return
+def cadastrar_maquina():
+    nome = simpledialog.askstring("Cadastrar Máquina", "Nome da máquina:")
+    if nome:
+        MAQUINAS.append(nome)
+        lista_maquinas.insert(tk.END, nome)
 
-    maquina = lista_maquinas.get(lista_maquinas.curselection())
-    entry_pesq_maquina.delete(0, tk.END)
-    entry_pesq_maquina.insert(0, maquina)
+def cadastrar_operador():
+    nome = simpledialog.askstring("Cadastrar Operador", "Nome do operador:")
+    if nome:
+        OPERADORES.append(nome)
+        lista_operadores.insert(tk.END, nome)
 
-    lista_maquinas.bind("<<ListboxSelect>>", maquina_selecionada)
-
+# =====================================================
+# 4️⃣ FUNÇÕES PRINCIPAIS
+# =====================================================
 
 def iniciar_apontamento():
-    if not lista_maquinas.curselection():
-        messagebox.showwarning("Aviso", "Selecione uma máquina")
+    maquina = entry_maquina.get()
+    operador = entry_operador.get()
+
+    if not maquina or not operador:
+        messagebox.showwarning("Atenção", "Selecione uma máquina e um operador.")
         return
-
-    if not lista_operadores.curselection():
-        messagebox.showwarning("Aviso", "Selecione um operador")
-        return
-
-    codigo = entry_bipe.get().strip()
-    if not codigo:
-        messagebox.showwarning("Aviso", "Bipe o código do desenho")
-        return
-
-    maquina = lista_maquinas.get(lista_maquinas.curselection())
-    operador = lista_operadores.get(lista_operadores.curselection())
-
-    inicio = datetime.now().strftime("%H:%M:%S")
 
     messagebox.showinfo(
         "Apontamento Iniciado",
-        f"Máquina: {maquina}\n"
-        f"Operador: {operador}\n"
-        f"Código: {codigo}\n"
-        f"Início: {inicio}"
+        f"Máquina: {maquina}\nOperador: {operador}"
     )
 
-    entry_bipe.delete(0, tk.END)
+def fechar_apontamento():
+    resposta = messagebox.askyesno(
+        "Confirmar",
+        "Deseja realmente fechar o apontamento?"
+    )
+    if resposta:
+        entry_maquina.delete(0, tk.END)
+        entry_operador.delete(0, tk.END)
 
-# =========================
-# INTERFACE
-# =========================
+# =====================================================
+# 5️⃣ JANELA PRINCIPAL
+# =====================================================
 
 root = tk.Tk()
-root.title("Sistema de Apontamento - Usinagem")
-root.geometry("700x500")
+root.title("Sistema de Apontamento - Beta")
+root.state("zoomed")
 
-# --------- FRAME PRINC20IPAL ----------
-frame_top = tk.Frame(root)
-frame_top.pack(pady=10)
+# =====================================================
+# 6️⃣ MENU SUPERIOR
+# =====================================================
 
-# --------- MÁQUINAS ----------
-tk.Label(frame_top, text="Máquinas", font=("Arial", 11, "bold")).grid(row=0, column=0)
+menu_bar = tk.Menu(root)
+root.config(menu=menu_bar)
 
-entry_pesq_maquina = tk.Entry(frame_top, width=25)
-entry_pesq_maquina.grid(row=1, column=0, pady=5)
+menu_cadastro = tk.Menu(menu_bar, tearoff=0)
+menu_bar.add_cascade(label="Cadastro", menu=menu_cadastro)
 
-frame_lista_maquina = tk.Frame(frame_top)
-frame_lista_maquina.grid(row=2, column=0)
+menu_cadastro.add_command(label="Cadastrar Máquina", command=cadastrar_maquina)
+menu_cadastro.add_command(label="Cadastrar Operador", command=cadastrar_operador)
 
-scroll_maquina = tk.Scrollbar(frame_lista_maquina)
-scroll_maquina.pack(side="right", fill="y")
+# =====================================================
+# 7️⃣ LAYOUT PRINCIPAL
+# =====================================================
 
-lista_maquinas = tk.Listbox(frame_top, height=8, exportselection=False)
-lista_maquinas.pack()
+frame_principal = tk.Frame(root, padx=20, pady=20)
+frame_principal.pack(fill="both", expand=True)
 
-scroll_maquina.config(command=lista_maquinas.yview)
+frame_listas = tk.Frame(frame_principal)
+frame_listas.pack(side="left", fill="y", padx=20)
+
+frame_selecao = tk.Frame(frame_principal)
+frame_selecao.pack(side="right", fill="both", expand=True)
+
+# =====================================================
+# 8️⃣ LISTA DE MÁQUINAS
+# =====================================================
+
+tk.Label(frame_listas, text="Máquinas").pack()
+
+pesquisa_maquina = tk.Entry(frame_listas)
+pesquisa_maquina.pack(fill="x")
+
+lista_maquinas = tk.Listbox(frame_listas, height=15)
+scroll_maquinas = tk.Scrollbar(frame_listas)
+
+lista_maquinas.pack(side="left", fill="y")
+scroll_maquinas.pack(side="right", fill="y")
+
+lista_maquinas.config(yscrollcommand=scroll_maquinas.set)
+scroll_maquinas.config(command=lista_maquinas.yview)
 
 for m in MAQUINAS:
     lista_maquinas.insert(tk.END, m)
 
-    lista_maquinas.bind("<<ListboxSelect>>", maquina_selecionada)
+pesquisa_maquina.bind(
+    "<KeyRelease>",
+    lambda e: filtrar_lista(pesquisa_maquina, MAQUINAS, lista_maquinas)
+)
 
+# =====================================================
+# 9️⃣ LISTA DE OPERADORES
+# =====================================================
 
-# --------- OPERADORES ----------
-tk.Label(frame_top, text="Operadores", font=("Arial", 11, "bold")).grid(row=0, column=1, padx=30)
+tk.Label(frame_listas, text="Operadores").pack(pady=(20, 0))
 
-entry_pesq_operador = tk.Entry(frame_top, width=25)
-entry_pesq_operador.grid(row=1, column=1, pady=5, padx=30)
+pesquisa_operador = tk.Entry(frame_listas)
+pesquisa_operador.pack(fill="x")
 
-frame_lista_operador = tk.Frame(frame_top)
-frame_lista_operador.grid(row=2, column=1, padx=30)
+lista_operadores = tk.Listbox(frame_listas, height=15)
+scroll_operadores = tk.Scrollbar(frame_listas)
 
-scroll_operador = tk.Scrollbar(frame_lista_operador)
-scroll_operador.pack(side="right", fill="y")
+lista_operadores.pack(side="left", fill="y")
+scroll_operadores.pack(side="right", fill="y")
 
-lista_operadores = tk.Listbox(frame_lista_operador,width=25,height=8,yscrollcommand=scroll_operador.set)
-lista_operadores.pack()
-
-scroll_operador.config(command=lista_operadores.yview)
+lista_operadores.config(yscrollcommand=scroll_operadores.set)
+scroll_operadores.config(command=lista_operadores.yview)
 
 for o in OPERADORES:
     lista_operadores.insert(tk.END, o)
 
-    lista_operadores.bind("<<ListboxSelect>>", operador_selecionado)
+pesquisa_operador.bind(
+    "<KeyRelease>",
+    lambda e: filtrar_lista(pesquisa_operador, OPERADORES, lista_operadores)
+)
 
-# --------- BIPE ----------
-tk.Label(root, text="Bipe o código do desenho", font=("Arial", 11)).pack(pady=10)
+# =====================================================
+# 🔟 CAMPOS DE SELEÇÃO
+# =====================================================
 
-entry_bipe = tk.Entry(root, font=("Arial", 14), width=30)
-entry_bipe.pack()
-entry_bipe.focus()
+tk.Label(frame_selecao, text="Máquina Selecionada").pack()
+entry_maquina = tk.Entry(frame_selecao, font=("Arial", 14))
+entry_maquina.pack(fill="x", pady=10)
 
-# --------- BOTÃO ----------
+tk.Label(frame_selecao, text="Operador Selecionado").pack()
+entry_operador = tk.Entry(frame_selecao, font=("Arial", 14))
+entry_operador.pack(fill="x", pady=10)
+
+lista_maquinas.bind(
+    "<<ListboxSelect>>",
+    lambda e: selecionar_da_lista(e, entry_maquina, lista_maquinas)
+)
+
+lista_operadores.bind(
+    "<<ListboxSelect>>",
+    lambda e: selecionar_da_lista(e, entry_operador, lista_operadores)
+)
+
+# =====================================================
+# 1️⃣1️⃣ BOTÕES
+# =====================================================
+
 tk.Button(
-    root,
+    frame_selecao,
     text="Iniciar Apontamento",
-    font=("Arial", 12),
-    width=25,
+    height=2,
     command=iniciar_apontamento
-).pack(pady=20)
+).pack(fill="x", pady=20)
+
+tk.Button(
+    frame_selecao,
+    text="Fechar Apontamento",
+    height=2,
+    command=fechar_apontamento
+).pack(fill="x")
+
+# =====================================================
+# 1️⃣2️⃣ LOOP PRINCIPAL
+# =====================================================
 
 root.mainloop()
