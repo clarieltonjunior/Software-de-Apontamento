@@ -4,4 +4,4 @@ Controla andamento de projetos, funçoes, podendo ser personalizado conforme a n
 
 Software funcionando e salvando em .xlsx e rodando em B.I para analise de dados.
 
-Estou em desenvolvimento e em busca de uma vaga em back-end, entendo o basico de front-end porém ainda me perco um pouco e pesso ajuda do nosso amigo IA! 
+Estou em desenvolvimento e em busca de uma vaga em back-end, entendo o basico de front-end porém para testar as funcionalidaes utilizo IA para me auxiliar com a interface
